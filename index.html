@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>自制接龙统计器之智能人工</title>
+    <!-- Bootstrap -->
+    <link href="//cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/jquery/2.1.1/jquery.min.js" rel="external nofollow"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js" rel="external nofollow"></script>
+    <script>
+    var same = {
+      "酵母粉" : "酵母",
+      "耗油" : "蚝油",
+      "乳腐" : "腐乳",
+      "夜用日用卫生巾" : "日用夜用卫生巾",
+      "六月鲜": "六月鲜酱油",
+      "可乐": "可口可乐",
+      "零度": "零度可乐"
+    };
+    function calcTermCount() {
+      var debugStr = "开始统计词频</br>";
+      debugStr = debugStr + "词库中的同义词有" + same + "</br>";
+      var inputText = document.getElementById("rawtext").value;
+      var unit = document.getElementById("_1unit").value;
+      var terms = document.getElementById("_1term").value.split("、");
+      debugStr = debugStr + "单位：" + unit + "</br>";
+      debugStr = debugStr + "统计词：" + terms + "</br>";
+      var stats = {};
+      var result = "";
+      
+      var regex1 = "(" + terms.join("|") + ")" + "(半|[0-9]|[1-9][0-9])" + unit;
+      var regex2 = "(半|[0-9]|[1-9][0-9])" + unit + "(" + terms.join("|") + ")";
+      
+      debugStr = "正在处理格式如" + regex1 + "或" + regex2 + "的接龙</br>";
+      
+      var r1 = new RegExp(regex1);
+      var r2 = new RegExp(regex2);
+      
+      inputText = inputText.replace(/。/g, ",")
+      inputText = inputText.replace(/、/g, ",")
+      inputText = inputText.replace(/，/g, ",")
+      var lines = inputText.split("\n");
+      
+      var split1 = /[,. ]/;
+    
+      for (var i=0, len=lines.length; i<len; i++) {
+        var line = lines[i];
+        
+        if (line.indexOf(".") != -1) {
+          let [cand, content] = splitLine(line);
+          
+          var things = content.split(split1);
+          var need = {};
+          for (var j=0; j<things.length; j++) {
+            if (things[j].length ==0) {
+              continue;
+            }
+            var s = things[j].match(r1);
+            if (s == undefined) {
+              s = things[j].match(r2);
+            }
+            if (s != undefined) {
+              need[s[1]] = s[2];
+            } else {
+              debugStr = debugStr + "分析" + line + "出错，请检查格式" + "</br>";
+            }
+          }
+          if (stats[cand]) {
+            debugStr = debugStr + "存在重复接龙" + cand + "</br>"
+          } else {
+            stats[cand] = need;
+          }
+          //debugStr = debugStr + cand + "<->" + things.join(":") + "</br>";
+        }
+      }
+      
+      var sums = {};
+      
+      result = "<table style=\"width:100%\" border=\"1\"><tr><th>填写人</th><th>" + terms.join("</th><th>")
+      + "</th></tr>";
+      
+      for (house in stats) {
+        result = result + "<tr><td>" + house + "</td>";
+        for (var i=0; i< terms.length;i++) {
+          var num = stats[house][terms[i]];
+          if (num == undefined) {
+            num = "0";
+          }
+          if (num == "半") {
+            num = "0.5";
+          }
+          if (sums[terms[i]]) {
+            sums[terms[i]] += Number(num);
+          } else {
+            sums[terms[i]] = Number(num);
+          }
+          result = result + "<td>" + num + "</td>";
+        }
+        result = result + "</tr>";
+      }
+      result = result + "</table>";
+      
+      for (var i=0; i< terms.length;i++) {
+        debugStr = debugStr + terms[i] + "总计" + sums[terms[i]] + unit + "</br>";
+      }
+      
+      document.getElementById("debug").innerHTML = debugStr;
+      document.getElementById("output").innerHTML = result;
+    }
+    function calcCount() {
+      var debugStr = "开始统计数量</br>";
+      var inputText = document.getElementById("rawtext").value;
+      var unit = document.getElementById("_2unit").value;
+      debugStr = debugStr + "单位:" + unit + "</br>";
+      
+      var stats = {};
+      var result = "";
+      
+      var regex1 = "(半|[0-9]|[1-9][0-9])" + unit;
+      debugStr = "正在处理格式如" + regex1 + "的接龙</br>";
+      
+      var r1 = new RegExp(regex1);
+      
+      inputText = inputText.replace(/。/g, ",")
+      inputText = inputText.replace(/、/g, ",")
+      inputText = inputText.replace(/，/g, ",")
+      var lines = inputText.split("\n");
+      
+      var split1 = /[,. ]/;
+    
+      for (var i=0, len=lines.length; i<len; i++) {
+        var line = lines[i];
+        
+        if (line.indexOf(".") != -1) {
+          let [cand, content] = splitLine(line);
+          
+          var things = content.split(split1);
+          var need = {};
+          for (var j=0; j<things.length; j++) {
+            if (things[j].length ==0 && j!=0) {
+              continue;
+            }
+            var s = things[j].match(r1);
+            if (s != undefined) {
+              need["数量"] = s[1];
+            } else {
+              need["数量"] = "1";
+              debugStr = debugStr + "分析" + line + "出错，请检查格式；";
+              debugStr = debugStr + "默认为一份" + "</br>"
+            }
+          }
+          if (stats[cand]) {
+            debugStr = debugStr + "存在重复接龙" + cand + "</br>"
+          } else {
+            stats[cand] = need;
+          }
+          //debugStr = debugStr + cand + "<->" + things.join(":") + "</br>";
+        }
+      }
+      
+      var sums = 0;
+      
+      result = "<table style=\"width:100%\" border=\"1\"><tr><th>填写人</th><th>数量</th></tr>";
+      
+      for (house in stats) {
+        result = result + "<tr><td>" + house + "</td>";
+        var num = stats[house]["数量"];
+        if (num == undefined) {
+          num = "0";
+        }
+        sums += Number(num);
+        result = result + "<td>" + num + "</td>";
+        result = result + "</tr>";
+      }
+      result = result + "</table>";
+      
+      debugStr = debugStr + "数量总计" + sums + unit + "</br>";
+      
+      document.getElementById("debug").innerHTML = debugStr;
+      document.getElementById("output").innerHTML = result;
+    }
+    function calcTerm() {
+      var debugStr = "开始统计词频</br>";
+      debugStr = debugStr + "词库中的同义词有" + printMap(same) + "</br>";
+      var inputText = document.getElementById("rawtext").value;
+      
+      var stats = {};
+      var result = "";
+      
+      inputText = inputText.replace(/。/g, ",")
+      inputText = inputText.replace(/、/g, ",")
+      inputText = inputText.replace(/，/g, ",")
+      var lines = inputText.split("\n");
+      
+      var split1 = /[,. ]/;
+    
+      for (var i=0, len=lines.length; i<len; i++) {
+        var line = lines[i];
+        
+        if (line.indexOf(".") != -1) {
+          let [cand, content] = splitLine(line);
+          
+          var things = content.split(split1);
+          var need = {};
+          for (var j=0; j<things.length; j++) {
+            if (things[j].length == 0) {
+              continue;
+            }
+            if (stats[things[j]]) {
+              stats[things[j]].push(cand);
+            } else {
+              stats[things[j]] = [cand];
+            }
+          }
+        }
+      }
+      
+      result = "<table style=\"width:100%\" border=\"1\"><tr><th>需求物</th><th>需求户数</th><th>需求人</th></tr>";
+      
+      for (thing in stats) {
+        result = result + "<tr><td>" + thing + "</td>";
+        result = result + "<td>" + stats[thing].length + "</td>";
+        result = result + "<td>" + stats[thing] + "</td>";
+        result = result + "</tr>";
+      }
+      result = result + "</table>";
+      
+      document.getElementById("debug").innerHTML = debugStr;
+      document.getElementById("output").innerHTML = result;
+    }
+    function printMap(map) {
+      var str = "";
+      for (key in map) {
+        str += "(" + key + "->" + map[key] + ")";
+      }
+      return str;
+    }
+    function splitLine(line) {
+      var slices = line.split(/(\d+\.\s+)/)[2].split(/\s+/);
+      var cand = slices[0];
+      var content = slices.slice(1, slices.length).join(" ");
+      content = content.replace(/一/g, "1");
+      content = content.replace(/二/g, "2");
+      content = content.replace(/两/g, "2");
+      return [cand, content];
+    }
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+       <h1>欢迎来到接龙统计器</h1>
+       <h4>本智能人工接龙统计器只能处理固定格式的接龙，可根据日志提示人工修改接龙内容</h4>
+
+      <div>
+        <ul id="displayer" class="nav nav-tabs">
+          <li class="active"> <a href="#input" data-toggle="tab">输入框</a>
+
+          </li>
+          <li> <a href="#console" data-toggle="tab">日志</a>
+
+          </li>
+          <li><a href="#result" data-toggle="tab">结果</a>
+
+          </li>
+        </ul>
+        <div id="displayTab" class="tab-content">
+          <div id="input" class="tab-pane fade in active">
+            <textarea id="rawtext" style="width:100%;height:300px" placeholder="输入接龙内容，根据日志提示调整不符合格式的内容"></textarea>
+          </div>
+          <div id="console" class="tab-pane fade">
+            <h3>调试信息</h3>
+            <p id="debug"></p>
+          </div>
+          <div id="result" style="width:100%" class="tab-pane fade">
+            <h3>输出表格</h3>
+            <div id="output"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <ul id="panel" class="nav nav-tabs">
+          <li class="active"> <a href="#format1" data-toggle="tab">格式1</a>
+
+          </li>
+          <li> <a href="#format2" data-toggle="tab">格式2</a>
+
+          </li>
+          <li><a href="#format3" data-toggle="tab">格式3</a>
+
+          </li>
+        </ul>
+        <div id="panelTab" class="tab-content">
+          <div id="format1" class="tab-pane fade in active">
+            <div>这里可以处理接龙格式形如：<br>202 可口可乐一箱 零度可乐一箱
+              <button onclick="calcTermCount()">点击统计候选词数量</button>
+              <input id="_1term" type="text" placeholder="请输入统计词" />
+              <input id="_1unit" type="text" placeholder="请输入单位" />
+            </div>
+          </div>
+          <div id="format2" class="tab-pane fade">
+            <div>这里可以处理接龙格式形如： <br>803 一份
+              <button onclick="calcCount()">点击统计数量</button>
+              <input id="_2unit" type="text" placeholder="请输入单位" />
+            </div>
+          </div>
+          <div id="format3" class="tab-pane fade">
+            <div>这里可以处理接龙格式形如： <br>902 酸奶，牛奶
+              <button onclick="calcTerm()">点击统计词频</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>
