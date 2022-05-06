@@ -63,7 +63,11 @@
               s = things[j].match(r2);
             }
             if (s != undefined) {
-              need[s[1]] = s[2];
+              var key = s[1];
+              if (same[key]) {
+                key = same[key];
+              }
+              need[key] = s[2];
             } else {
               debugStr = debugStr + "分析" + line + "出错，请检查格式" + "</br>";
             }
@@ -149,7 +153,7 @@
             } else {
               need["数量"] = "1";
               debugStr = debugStr + "分析" + line + "出错，请检查格式；";
-              debugStr = debugStr + "默认为一份" + "</br>"
+              debugStr = debugStr + "默认为一" + unit + "</br>"
             }
           }
           if (stats[cand]) {
@@ -209,10 +213,14 @@
             if (things[j].length == 0) {
               continue;
             }
-            if (stats[things[j]]) {
-              stats[things[j]].push(cand);
+            var key = things[j];
+            if (same[key]) {
+                key = same[key];
+            }
+            if (stats[key]) {
+              stats[key].push(cand);
             } else {
-              stats[things[j]] = [cand];
+              stats[key] = [cand];
             }
           }
         }
@@ -297,14 +305,14 @@
           <div id="format1" class="tab-pane fade in active">
             <div>这里可以处理接龙格式形如：<br>202 可口可乐一箱 零度可乐一箱
               <button onclick="calcTermCount()">点击统计候选词数量</button>
-              <input id="_1term" type="text" placeholder="请输入统计词" />
-              <input id="_1unit" type="text" placeholder="请输入单位" />
+              <input id="_1term" type="text" placeholder="请输入统计词，用、分割" />
+              <input id="_1unit" type="text" placeholder="请输入单位，如箱" />
             </div>
           </div>
           <div id="format2" class="tab-pane fade">
             <div>这里可以处理接龙格式形如： <br>803 一份
               <button onclick="calcCount()">点击统计数量</button>
-              <input id="_2unit" type="text" placeholder="请输入单位" />
+              <input id="_2unit" type="text" placeholder="请输入单位，如份" />
             </div>
           </div>
           <div id="format3" class="tab-pane fade">
