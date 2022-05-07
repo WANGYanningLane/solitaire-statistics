@@ -83,11 +83,12 @@
       
       var sums = {};
       
-      result = "<table style=\"width:100%\" border=\"1\"><tr><th>填写人</th><th>" + terms.join("</th><th>")
+      result = "<table style=\"width:100%\" border=\"1\"><tr><th>填写人</th><th>门牌号</th><th>" + terms.join("</th><th>")
       + "</th></tr>";
       
       for (house in stats) {
         result = result + "<tr><td>" + house + "</td>";
+        result = result + "<td>" + getNumber(house) + "</td>";
         for (var i=0; i< terms.length;i++) {
           var num = stats[house][terms[i]];
           if (num == undefined) {
@@ -167,10 +168,11 @@
       
       var sums = 0;
       
-      result = "<table style=\"width:100%\" border=\"1\"><tr><th>填写人</th><th>数量</th></tr>";
+      result = "<table style=\"width:100%\" border=\"1\"><tr><th>填写人</th><th>门牌号</th><th>数量</th></tr>";
       
       for (house in stats) {
         result = result + "<tr><td>" + house + "</td>";
+        result = result + "<td>" + getNumber(house) + "</td>";
         var num = stats[house]["数量"];
         if (num == undefined) {
           num = "0";
@@ -253,7 +255,22 @@
       content = content.replace(/一/g, "1");
       content = content.replace(/二/g, "2");
       content = content.replace(/两/g, "2");
+      content = content.replace(/三/g, "3");
+      content = content.replace(/四/g, "4");
+      content = content.replace(/五/g, "5");
+      content = content.replace(/六/g, "6");
+      content = content.replace(/七/g, "7");
+      content = content.replace(/八/g, "8");
+      content = content.replace(/九/g, "9");
+      //content = content.replace(/四/g, "4");
       return [cand, content];
+    }
+    function getNumber(cand) {
+      var r = cand.match(/([1-9]||1[0-9]||2[0-2])(0)([1-6])/);
+      if (r != undefined) {
+        return r[0];
+      }
+      return "unknown";
     }
     </script>
   </head>
